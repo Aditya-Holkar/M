@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Viewer</title>
+    <style>
+      body {
+        background-color: #404040;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #pages {
+        text-align: center;
+        width: 100%;
+        display: flex; /* Flexbox for horizontal scrolling */
+        flex-wrap: nowrap; /* Prevent wrapping */
+        overflow-x: auto; /* Allow horizontal scrolling */
+      }
+      .page {
+        margin: 10px auto;
+        box-shadow: 0px 0px 5px #000;
+        animation: pageIn 1s ease;
+        transition: all 1s ease, width 0.2s ease;
+      }
+      @keyframes pageIn {
+        0% {
+          transform: translateX(-300px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0px);
+          opacity: 1;
+        }
+      }
+      #toggle-view {
+        margin: 10px;
+      }
+      #page-count {
+        margin-top: 20px;
+        font-size: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="toggle-view">Toggle View</button>
+    <div id="pages"></div>
+    <div id="page-count"></div>
+    <!-- Container for page count -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.2.2/pdf.js"></script>
+    <script>
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.2.2/pdf.worker.js";
+
+      const params = new URLSearchParams(window.location.search);
+      const pdfUrl = decodeURIComponent(params.get("file"));
+      let pdfDoc = null;
+      let isSinglePageView = true; // Track the current view mode
+      const defaultZoom = 60; // Permanent zoom level
+
+      function loadPDF() {
+        pdfjsLib
+          .getDocument(pdfUrl)
+          .promise.then(function (pdf) {
+            pdfDoc = pdf;
+            // Update page count display
+            document.querySelector(
+              "#page-count"
+            ).textContent = `Total Pages: ${pdf.numPages}`;
+            // Load all pages
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              loadPage(pageNum);
+            }
+          })
+          .catch(function (error) {
+            console.error("Error loading PDF: ", error);
+          });
+      }
+
+      function loadPage(pageNum) {
+        pdfDoc.getPage(pageNum).then(function (page) {
+          // Create a higher scale viewport for better quality
+          const viewport = page.getViewport({ scale: defaultZoom / 100 });
+          const scaleFactor = 3; // Increase this for more quality (e.g., 3x)
+          const highResViewport = page.getViewport({
+            scale: viewport.scale * scaleFactor,
+          });
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "page";
+
+          // Set canvas dimensions based on high-res viewport
+          canvas.height = highResViewport.height;
+          canvas.width = highResViewport.width;
+
+          // Apply CSS to control visible size (using original viewport size for display)
+          canvas.style.height = viewport.height + "px";
+          canvas.style.width = isSinglePageView
+            ? "100%"
+            : viewport.width + "px"; // Full width in single-page view
+
+          document.querySelector("#pages").appendChild(canvas);
+
+          const renderContext = {
+            canvasContext: canvas.getContext("2d"),
+            viewport: highResViewport,
+          };
+
+          // Render the page in the canvas context
+          page.render(renderContext).promise.then(function () {
+            console.log("Page rendered: " + pageNum);
+          });
+        });
+      }
+
+      function toggleView() {
+        isSinglePageView = !isSinglePageView; // Toggle view mode
+        const pagesContainer = document.querySelector("#pages");
+        pagesContainer.style.flexDirection = isSinglePageView
+          ? "column"
+          : "row"; // Change layout based on view mode
+
+        // Optionally, adjust overflow based on view mode
+        pagesContainer.style.overflowX = isSinglePageView ? "hidden" : "auto";
+
+        // Reload PDF to apply the view mode
+        document.querySelector("#pages").innerHTML = "";
+        loadPDF();
+      }
+
+      document
+        .querySelector("#toggle-view")
+        .addEventListener("click", toggleView);
+
+      window.onload = loadPDF;
+    </script>
+  </body>
+</html>

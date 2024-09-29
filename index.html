@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0; /* Remove default margin */
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .table-container {
+        width: 100%; /* Full width */
+        max-width: 1200px; /* Max width for larger screens */
+        margin: auto; /* Center the table */
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden; /* Round the corners */
+      }
+      table {
+        width: 100%; /* Full width of the container */
+        border-collapse: collapse; /* Collapse borders */
+      }
+      th,
+      td {
+        padding: 15px; /* Padding for table cells */
+        text-align: left; /* Align text to the left */
+        border-bottom: 1px solid #ccc; /* Bottom border for rows */
+      }
+      th {
+        background-color: #007bff; /* Header background color */
+        color: white; /* Header text color */
+      }
+      tr:hover {
+        background-color: #f9f9f9; /* Highlight row on hover */
+      }
+      .no-docs {
+        text-align: center; /* Centered message */
+        padding: 20px; /* Padding for no documents message */
+        color: #777; /* Gray color for the message */
+      }
+      .subject-row {
+        background-color: #e7f3ff; /* Light background for subject rows */
+      }
+      .subject-header {
+        cursor: pointer; /* Pointer cursor for collapsible header */
+      }
+      .hidden {
+        display: none; /* Hidden by default */
+      }
+      .button {
+        background-color: #28a745; /* Button color */
+        color: white; /* Button text color */
+        padding: 10px 15px; /* Padding for buttons */
+        border: none; /* No border */
+        border-radius: 5px; /* Rounded corners */
+        text-decoration: none; /* No underline */
+        font-weight: bold; /* Bold text */
+        transition: background-color 0.3s; /* Transition effect */
+      }
+      .button:hover {
+        background-color: #218838; /* Darker shade on hover */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Available PDFs</h1>
+    <div class="table-container" id="pdf-list"></div>
+
+    <script>
+      const categorizedPdfs = {
+        "Python Programming": [
+          {
+            name: "Introduction to Python Programming",
+            file: "./pdf/A, Veena_S, Gowrishankar - Introduction to Python Programming (2019, CRC Press) - libgen.li.pdf",
+          },
+          {
+            name: "Python Basics",
+            file: "./pdf/python.pdf",
+          },
+          {
+            name: "Python-unit-1",
+            file: "./Python/Python-Unit-1.pdf",
+          },
+          {
+            name: "Python-unit-2",
+            file: "./Python/Python-Unit-2.pdf",
+          },
+        ],
+        "Data Structures and Algorithms": [
+          {
+            name: "Data Structures and Program Design Using Python",
+            file: "./pdf/Dheeraj Malhotra, Neha Malhotra - Data Structures and Program Design Using Python_ A Self-Teaching Introduction-Mercury Learning and Information (2020).pdf",
+          },
+        ],
+        "Advanced DBMS": [
+          {
+            name: "Database Management System Tutorial",
+            file: "./pdf/Database Management System [DBMS] Tutorial ( PDFDrive ).pdf",
+          },
+        ],
+        "Business Statistics": [],
+        "Software Engineering and Project Management": [
+          {
+            name: "Software Engineering",
+            file: "./pdf/Sommerville - Software Engineering-AW (2007).pdf",
+          },
+        ],
+        "Fundamentals of Cloud Computing": [
+          {
+            name: "Cloud Computing: Web-Based Applications",
+            file: "./pdf/Michael Miller - Cloud Computing_ Web-Based Applications That Change the Way You Work and Collaborate Online-Que (2008).pdf",
+          },
+        ],
+        "Web Development": [
+          {
+            name: "HTML, XHTML, & CSS: Visual QuickStart Guide",
+            file: "./pdf/Elizabeth Castro - HTML, XHTML, & CSS_ Visual QuickStart Guide-Peachpit Press (2006).pdf",
+          },
+          {
+            name: "Python Web Development with Django",
+            file: "./pdf/Jeff Forcier, Paul Bissex, Wesley Chun - Python Web development with Django (Covers Django 1.0) - Addison-Wesley (2008).pdf",
+          },
+        ],
+        "Fundamentals of Data Science": [
+          {
+            name: "Python for Data Analysis",
+            file: "./pdf/Wes McKinney - Python for Data Analysis-O'Reilly Media (2012).pdf",
+          },
+          {
+            name: "Data Wrangling with Pandas, NumPy, and IPython",
+            file: "./pdf/Wes McKinney - Python for Data Analysis. Data Wrangling with Pandas, NumPy, and IPython-O’Reilly (2017).pdf",
+          },
+        ],
+        "Introduction to Cyber Security": [],
+      };
+
+      const pdfListElement = document.getElementById("pdf-list");
+
+      // Create a table
+      const table = document.createElement("table");
+
+      // Iterate over each subject category
+      for (const category in categorizedPdfs) {
+        const pdfs = categorizedPdfs[category];
+
+        // Subject Header Row
+        const subjectRow = document.createElement("tr");
+        subjectRow.className = "subject-row subject-header";
+        subjectRow.onclick = () => {
+          const contentRow = subjectRow.nextElementSibling;
+          if (contentRow) {
+            contentRow.classList.toggle("hidden");
+          }
+        };
+
+        const subjectCell = document.createElement("td");
+        subjectCell.colSpan = 3; // Span across all columns
+        subjectCell.textContent = category;
+        subjectCell.style.fontWeight = "bold";
+        subjectCell.style.fontSize = "1.2em";
+        subjectRow.appendChild(subjectCell);
+        table.appendChild(subjectRow);
+
+        // Check if there are PDFs in this category
+        if (pdfs.length > 0) {
+          pdfs.forEach((pdf) => {
+            const row = document.createElement("tr");
+
+            const pdfNameCell = document.createElement("td");
+            pdfNameCell.textContent = pdf.name;
+
+            const actionsCell = document.createElement("td");
+
+            // Create download button
+            const downloadButton = document.createElement("a");
+            downloadButton.className = "button"; // Class for styling
+            downloadButton.textContent = "Download";
+            downloadButton.href = pdf.file;
+            downloadButton.download = pdf.name; // Set the file name for download
+            downloadButton.style.marginRight = "10px"; // Margin for spacing
+
+            const viewButton = document.createElement("a");
+            viewButton.className = "button"; // Class for styling
+            viewButton.textContent = "View";
+            viewButton.href = `pdf-viewer.html?file=${encodeURIComponent(
+              pdf.file
+            )}`;
+            viewButton.target = "_blank"; // Open in a new tab
+
+            actionsCell.appendChild(downloadButton);
+            actionsCell.appendChild(viewButton);
+
+            row.appendChild(pdfNameCell);
+            row.appendChild(actionsCell);
+            table.appendChild(row);
+          });
+        } else {
+          const row = document.createElement("tr");
+          const noDocsCell = document.createElement("td");
+          noDocsCell.colSpan = 3; // Span across all columns
+          noDocsCell.textContent = `No documents available for ${category}.`;
+          noDocsCell.className = "no-docs"; // Class for styling
+          row.appendChild(noDocsCell);
+          table.appendChild(row);
+        }
+
+        // Add an empty row to create space between categories
+        const emptyRow = document.createElement("tr");
+        const emptyCell = document.createElement("td");
+        emptyCell.colSpan = 3;
+        emptyRow.appendChild(emptyCell);
+        table.appendChild(emptyRow);
+      }
+
+      pdfListElement.appendChild(table);
+    </script>
+  </body>
+</html>
